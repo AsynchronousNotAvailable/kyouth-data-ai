@@ -1,0 +1,8 @@
+{
+  "python.analysis.extraPaths": ["${workspaceFolder}/week_1", "${workspaceFolder}/week_2", "${workspaceFolder}/week_3"],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/week_1",
+    "${workspaceFolder}/week_2",
+    "${workspaceFolder}/week_3"
+  ]
+}
