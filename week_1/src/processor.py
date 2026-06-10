@@ -3,7 +3,7 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from src.model.JobListing import JobListing
+from src.dao.JobListing import JobListing
 
 
 def process_all_html(input_dir, output_dir):
