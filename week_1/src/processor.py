@@ -36,23 +36,45 @@ def process_all_html(input_dir, output_dir):
             meta_tag = soup.find("meta", attrs={"property": "og:url"})
             title_tag = soup.find("meta", attrs={"property": "og:title"})
             desc_tag = soup.find("meta", attrs={"property": "og:description"})
-            company_tag = soup.find("span", attrs={"data-automation": "advertiser-name"})
+            company_tag = soup.find(
+                "span", attrs={"data-automation": "advertiser-name"}
+            )
             company_h4_tag = soup.find("h4", class_="mcr1dbi9")
-            company_span_fallback = soup.select_one("div.mcr1dbhh.mcr1db6l span.l304fg4")
+            company_span_fallback = soup.select_one(
+                "div.mcr1dbhh.mcr1db6l span.l304fg4"
+            )
 
             source_id = None
             if meta_tag and meta_tag.has_attr("content"):
                 full_url = meta_tag["content"]
                 source_id = full_url.rstrip("/").split("/")[-1]
 
-            job_title = title_tag["content"] if title_tag and title_tag.has_attr("content") else None
-            job_desc = desc_tag["content"] if desc_tag and desc_tag.has_attr("content") else None
+            job_title = (
+                title_tag["content"]
+                if title_tag and title_tag.has_attr("content")
+                else None
+            )
+            job_desc = (
+                desc_tag["content"]
+                if desc_tag and desc_tag.has_attr("content")
+                else None
+            )
             company_name = (
-                company_tag.get_text(separator=" ", strip=True) if company_tag else None
-            ) or (# NTT, Sitecore, Optimum Infosolutions, and Tech Mahindra
-                company_h4_tag.get_text(separator=" ", strip=True) if company_h4_tag else None
-            ) or (# Emerson Process Management Manufacturing (M) Sdn Bhd
-                company_span_fallback.get_text(separator=" ", strip=True) if company_span_fallback else None
+                (
+                    company_tag.get_text(separator=" ", strip=True)
+                    if company_tag
+                    else None
+                )
+                or (  # NTT, Sitecore, Optimum Infosolutions, and Tech Mahindra
+                    company_h4_tag.get_text(separator=" ", strip=True)
+                    if company_h4_tag
+                    else None
+                )
+                or (  # Emerson Process Management Manufacturing (M) Sdn Bhd
+                    company_span_fallback.get_text(separator=" ", strip=True)
+                    if company_span_fallback
+                    else None
+                )
             )
 
             missing_fields = []

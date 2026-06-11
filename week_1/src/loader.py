@@ -34,7 +34,12 @@ def load_all_jsons(input_dir):
                 INSERT OR IGNORE INTO jobs (source_id, job_title, company, description)
                 VALUES (?, ?, ?, ?)
                 """,
-                (data.get("source_id"), data.get("job_title"), data.get("company"), data.get("description")),
+                (
+                    data.get("source_id"),
+                    data.get("job_title"),
+                    data.get("company"),
+                    data.get("description"),
+                ),
             )
             conn.commit()
 
@@ -53,4 +58,6 @@ def load_all_jsons(input_dir):
 
     print()
     print("📊 Gold Summary:")
-    print(f"Total: {inserted + skipped + failed} | Inserted: {inserted} | Skipped: {skipped}")
+    print(
+        f"Total: {inserted + skipped + failed} | Inserted: {inserted} | Skipped: {skipped}"
+    )
