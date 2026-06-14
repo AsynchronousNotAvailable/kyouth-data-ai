@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "week_1",
+      "path": "week_1"
+    },
+    {
+      "name": "week_2",
+      "path": "week_2"
+    }
+  ],
+  "settings": {
+    "search.useIgnoreFiles": false
+  }
+}
