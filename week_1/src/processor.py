@@ -1,9 +1,14 @@
 import json
+import re
 from pathlib import Path
 
 from bs4 import BeautifulSoup
 
 from src.dao.JobListing import JobListing
+
+
+def _clean_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def process_all_html(input_dir, output_dir):
@@ -50,12 +55,12 @@ def process_all_html(input_dir, output_dir):
                 source_id = full_url.rstrip("/").split("/")[-1]
 
             job_title = (
-                title_tag["content"]
+                _clean_text(title_tag["content"])
                 if title_tag and title_tag.has_attr("content")
                 else None
             )
             job_desc = (
-                desc_tag["content"]
+                _clean_text(desc_tag["content"])
                 if desc_tag and desc_tag.has_attr("content")
                 else None
             )
