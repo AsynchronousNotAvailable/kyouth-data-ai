@@ -63,6 +63,155 @@ Reads all untagged rows from `data/jobs.db` and populates the `tech_stack` colum
 uv run tag_data.py
 ```
 
+#### How data tagging works
+
+**1. Fetch untagged jobs via MCP**
+
+```python
+async with Client(_MCP_SERVER) as mcp:
+    raw = await mcp.call_tool("get_untagged_jobs", {})
+    rows: list[dict] = json.loads(raw.content[0].text)
+```
+
+The MCP server queries `WHERE tech_stack IS NULL OR tech_stack = ''` and returns a list of `{source_id, description}` dicts. No SQL runs in `tag_data.py` directly.
+
+---
+
+**2. Split rows into batches and fire all batches concurrently**
+
+```python
+sem = asyncio.Semaphore(_RPM)          # _RPM = 5 → max 5 simultaneous API calls
+batches = [rows[i : i + _BATCH_SIZE]  # _BATCH_SIZE = 10 jobs per LLM call
+           for i in range(0, len(rows), _BATCH_SIZE)]
+
+tasks = [_process_batch(..., batch, idx, mcp) for idx, batch in enumerate(batches)]
+results = await asyncio.gather(*tasks)
+```
+
+All batches are launched together with `asyncio.gather`. The semaphore limits how many can call the LLM at the same time (max 5 = RPM limit).
+
+---
+
+**3. Inside each batch — build prompt and call LLM**
+
+```python
+_PROMPT_TMPL = """\
+Extract tech skills from each job description below.
+Respond with exactly one line per job using the job's numeric ID in brackets, followed by a dash, then the skills.
+If no tech skills exist, write a dash only. No other text.
+
+{jobs}"""
+
+def _build_prompt(batch: list[dict]) -> str:
+    blocks = "\n".join(
+        f"[{j['source_id']}]\n{j['description'][:_MAX_DESC_CHARS]}"  # truncate to 500 chars
+        for j in batch
+    )
+    return _PROMPT_TMPL.format(jobs=blocks)
+```
+
+Descriptions are capped at 500 characters. Technical signal is front-loaded in job ads, so truncation reduces token usage by 50–70% with minimal accuracy loss.
+
+---
+
+**4. Enforce the RPM rate limit without serial sleeping**
+
+```python
+async with sem:
+    slot_start = time.monotonic()
+    # ... call LLM ...
+    if (gap := _SLOT_DURATION - (time.monotonic() - slot_start)) > 0:
+        await asyncio.sleep(gap)   # hold the slot for remainder of 12 s window
+```
+
+Each semaphore slot is held for at least `60 / RPM = 12s`. This guarantees ≤ 5 calls per minute across all concurrent batches without any global sleep.
+
+---
+
+**5. Parse the LLM response**
+
+```python
+_LINE_RE = re.compile(r"^\[(\w+)\]\s*[-|:]?\s*(.*)$")
+
+def _parse_response(text, expected_ids) -> dict[str, str] | None:
+    for ln in text.splitlines():
+        m = _LINE_RE.match(ln.strip())
+        if not m:
+            continue          # skip headers, blanks, preamble lines
+        sid, value = m.group(1), m.group(2).strip()
+        if sid in id_set:
+            result[sid] = value
+    if len(result) != len(expected_ids):
+        return None           # format failure → trigger retry
+    return result
+```
+
+The regex handles all separator variants the LLM might produce: `[id] - skills`, `[id]: skills`, `[id]| skills`, or `[id] skills`. Returns `None` on a count mismatch (wrong number of lines), which triggers a retry. Returns the dict normally even if a job has no skills — the caller uses `_has_skills()` to distinguish.
+
+---
+
+**6. Write results back via MCP and print output**
+
+```python
+updates = [
+    {"source_id": sid, "tech_stack": skills if _has_skills(skills) else "N/A"}
+    for sid, skills in parsed.items()
+]
+await mcp.call_tool("batch_update_tech_stacks", {"updates_json": json.dumps(updates)})
+```
+
+Jobs with tech skills get the comma-separated skill string. Jobs with no tech skills get `"N/A"` — this prevents them from being re-fetched on future runs (the `get_untagged_jobs` query only returns `NULL` or empty rows).
+
+---
+
+**7. Retry logic**
+
+```python
+for attempt in range(1, _MAX_RETRIES + 1):   # up to 3 attempts
+    try:
+        text, in_tok, out_tok = await asyncio.wait_for(
+            _call_llm(...), timeout=_TIMEOUT   # give up after 120 s
+        )
+        parsed = _parse_response(text, expected_ids)
+        if parsed is None:                     # format mismatch → retry
+            await asyncio.sleep(_RETRY_DELAY)  # wait 60 s (full RPM window)
+            continue
+        # success → break
+    except asyncio.TimeoutError: ...           # retry
+    except Exception: ...                      # retry
+```
+
+Retries happen only on format failures or errors — not when a job legitimately has no skills.
+
+---
+
+**Flow diagram**
+
+```
+jobs.db (NULL tech_stack rows)
+         │
+         ▼  MCP: get_untagged_jobs
+      [rows]
+         │
+    split into batches of 10
+         │
+    asyncio.gather ──────────────────────────────────┐
+         │                                           │
+  [Batch 0]          [Batch 1]          ...    [Batch N]
+  acquire sem        acquire sem               acquire sem
+  build prompt       build prompt              build prompt
+  call LLM           call LLM                  call LLM
+  parse response     parse response            parse response
+  write via MCP      write via MCP             write via MCP
+  hold 12s slot      hold 12s slot             hold 12s slot
+         │
+         ▼  MCP: get_all_tech_stacks
+   quality report
+         │
+         ▼
+  Total tokens used: X, took Yms
+```
+
 **Expected output (per batch):**
 
 ```
