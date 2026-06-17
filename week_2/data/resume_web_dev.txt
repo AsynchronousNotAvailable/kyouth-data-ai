@@ -1,0 +1,17 @@
+ALICE FRONTEND
+Frontend Developer
+alice@example.com • Kuala Lumpur
+
+SUMMARY
+Passionate frontend developer building responsive web applications.
+
+SKILLS
+Technical Skills: HTML, CSS, JavaScript, React, TypeScript
+
+EXPERIENCE
+Junior Frontend Developer - WebCo (2023 - present)
+  - Built responsive UI components using React and TypeScript
+  - Styled pages with CSS and HTML
+
+EDUCATION
+BSc Computer Science, UM 2023
