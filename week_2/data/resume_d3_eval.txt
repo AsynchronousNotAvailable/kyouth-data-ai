@@ -1,0 +1,26 @@
+MARK GRAYSON
+mkra_grayson@gmail.com • 1234567890 • Petaling Jaya, Selangor, Malaysia
+SUMMARY
+Mid-level Software Engineer with 5+ years of experience specializing in data science and machine learning. Proven track
+record of building scalable data pipelines, deploying predictive models, and translating business problems into data-driven
+solutions. Strong background in Python, SQL, and cloud-based analytics.
+EXPERIENCE
+Software Engineer (Data Science)
+June 2022 - Present
+TechNova Solutions Sdn Bhd
+Puching Selangor
+Developed recommendation systems that increased user engagement by 22%
+Performed exploratory data analysis and feature engineering on large datasets
+Automated reporting dashboards using Python and Tableau
+Implemented A/B testing frameworks to evaluate product features
+EDUCATION
+Universiti Malaya
+Sep 2013 - Jan 2049
+Bachelor of Computer Science (Data Science)
+Kuala Lumpur, Malaysia
+SKILLS
+Technical Skills: Python, SQL, Java, R, Pandas, NumPy, Scikit-learn, TensorFlow, PyTorch, Docker, Kubernetes, Git, CI/CD,
+A/B Testing, Tableau
+Languages: English
+Additional Skills: Cooking, Flying, Babysitting
+

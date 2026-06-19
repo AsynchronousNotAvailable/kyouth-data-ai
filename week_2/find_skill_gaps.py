@@ -48,7 +48,7 @@ from enums.models import Models
 from settings.config import get_settings
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-_MODEL = Models.CLOUD_MODELS.GEMINI_3_FLASH_PREVIEW
+_MODEL = Models.LOCAL_MODELS.QWEN_3_5_LATEST
 _TIMEOUT = 60
 _MAX_RETRIES = 3
 _RETRY_DELAY = 12           # s — 60 / RPM(5); resume is a single call so RPD is safe
@@ -500,7 +500,7 @@ async def find_skill_gaps(
 if __name__ == "__main__":
     base = Path(__file__).resolve().parent
     db = str(base / "data" / "jobs.db")
-    resumes = sorted((base / "data").glob("resume_*.txt"))
+    resumes = sorted((base / "data").glob("resume_d3.txt"))
     for resume in resumes:
         print(f"\n{'='*60}")
         print(f"Resume: {resume.name}")

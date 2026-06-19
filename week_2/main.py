@@ -13,8 +13,12 @@ def main():
 
     model = sys.argv[1]
     prompt = " ".join(sys.argv[2:])
-    result = prompt_model(model, prompt)
-    print(result)
+    try:
+        result = prompt_model(model, prompt)
+        print(result)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
