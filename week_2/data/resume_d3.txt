@@ -1,18 +1,0 @@
-KURAKURA PENYU
-Backend developer
-asdf@kurakura.com • 1234567890 • Kuala lumpur • linkedin.com/kurakura • github.com/kurakura
-SUMMARY
-Experienced professional in backend development and software development leadership
-EDUCATION
-42KL
-Core Programme
-Kuala Lumpur
-UMHackathon 2026 champion
-SKILLS
-Technical Skills:C, C++, Azure, python, powershell, MYSQL
-Languages: English
-Additional Skills: Cooking
-CERTIFICATIONS
-• CISCO CCNA
-January 2013
-
