@@ -9,15 +9,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-from database.config import init_db
-
 _DB_URL = Path(__file__).parent / "data" / "jobs.db"
 
 mcp = FastMCP("jobs-db")
 
 
 def _conn() -> sqlite3.Connection:
-    init_db(_DB_URL)
+    if not _DB_URL.exists():
+        raise FileNotFoundError(f"Database not found: {_DB_URL}")
     conn = sqlite3.connect(_DB_URL)
     conn.row_factory = sqlite3.Row
     return conn

@@ -48,7 +48,7 @@ from enums.models import Models
 from settings.config import get_settings
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-_MODEL = Models.LOCAL_MODELS.QWEN_3_5_LATEST
+_MODEL = Models.LOCAL_MODELS.LLAMA3_1_LATEST
 _TIMEOUT = 60
 _MAX_RETRIES = 3
 _RETRY_DELAY = 12           # s — 60 / RPM(5); resume is a single call so RPD is safe
@@ -297,7 +297,7 @@ async def _call_llm(
         resp = await gemini_client.aio.models.generate_content(
             model=model,
             contents=prompt,
-            config=types.GenerateContentConfig(temperature=0),
+            config=types.GenerateContentConfig(temperature=0, top_p=0),
         )
         text = resp.text or ""
         usage = resp.usage_metadata
@@ -307,11 +307,13 @@ async def _call_llm(
 
     if model in Models.LOCAL_MODELS:
         from ollama import AsyncClient as OllamaAsync
+        from ollama import Options as OllamaOptions
         resp = await OllamaAsync().chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             think=False,
             stream=False,
+            options=OllamaOptions(temperature=0, top_p=0),
         )
         text = resp.message.content or ""
         in_tok = getattr(resp, "prompt_eval_count", None) or _fb(prompt)
@@ -440,6 +442,12 @@ async def find_skill_gaps(
         gemini_client = genai.Client(api_key=api_key)
     else:
         gemini_client = None
+        try:
+            import ollama
+            ollama.list()
+        except Exception:
+            print("Error: Ollama is not running. Start it with: ollama serve")
+            return SkillGapResult(gaps=[], tokens=0, time=0)
 
     try:
         async with Client(_MCP_SERVER) as mcp:
@@ -499,8 +507,8 @@ async def find_skill_gaps(
 
 if __name__ == "__main__":
     base = Path(__file__).resolve().parent
-    db = str(base / "data" / "jobs.db")
-    resumes = sorted((base / "data").glob("resume_d3.txt"))
+    db = str(base / "data" / "jobs_d3_eval.db")
+    resumes = sorted((base / "data").glob("resume_d3_eval.txt"))
     for resume in resumes:
         print(f"\n{'='*60}")
         print(f"Resume: {resume.name}")

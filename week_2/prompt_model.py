@@ -1,5 +1,6 @@
 import sys
 
+from ollama import Options as OllamaOptions
 from ollama import chat as ollama_chat
 
 from enums.models import Models
@@ -13,6 +14,7 @@ def _call_local(model: str, prompt: str) -> str:
         messages=[{"role": "user", "content": prompt}],
         think=False,
         stream=False,
+        options=OllamaOptions(temperature=0, top_p=0),
     )
     if response.message.thinking:
         print("Thinking:\n", response.message.thinking)
@@ -21,9 +23,14 @@ def _call_local(model: str, prompt: str) -> str:
 
 def _call_gemini(model: str, prompt: str) -> str:
     from google import genai
+    from google.genai import types
 
     client = genai.Client(api_key=get_settings().gemini_api_key)
-    response = client.models.generate_content(model=model, contents=prompt)
+    response = client.models.generate_content(
+        model=model,
+        contents=prompt,
+        config=types.GenerateContentConfig(temperature=0, top_p=0),
+    )
     return response.text
 
 
@@ -49,8 +56,15 @@ def main():
 
     model = sys.argv[1]
     prompt = " ".join(sys.argv[2:])
-    result = prompt_model(model, prompt)
-    print(result)
+    try:
+        result = prompt_model(model, prompt)
+        print(result)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: LLM call failed — {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
