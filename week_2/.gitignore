@@ -11,4 +11,4 @@ wheels/
 .env
 
 # Data folder (DB and resume files)
-*/data/*
+data/
