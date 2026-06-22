@@ -40,6 +40,7 @@ from collections import Counter
 from pathlib import Path
 
 from fastmcp import Client
+from fastmcp.client.transports import PythonStdioTransport
 from google import genai
 from google.genai import types
 
@@ -53,7 +54,7 @@ _TIMEOUT = 60
 _MAX_RETRIES = 3
 _RETRY_DELAY = 12           # s — 60 / RPM(5); resume is a single call so RPD is safe
 _CACHE_DIR = Path(__file__).parent / ".cache"
-_MCP_SERVER = str(Path(__file__).parent / "mcp_server.py")
+_MCP_SERVER_SCRIPT = str(Path(__file__).parent / "mcp_server.py")
 
 # These slash-compounds are treated as ONE skill, never split
 _SLASH_EXCEPTIONS = frozenset({"a/b testing", "ci/cd"})
@@ -417,7 +418,10 @@ async def find_skill_gaps(
     db_url: str,
 ) -> SkillGapResult:
     """Find skill gaps between resume and job market requirements."""
-    _ = db_url  # DB access goes via MCP server, which owns the path
+    if not Path(db_url).exists():
+        print(f"Error: database not found at {db_url}")
+        return SkillGapResult(gaps=[], tokens=0, time=0)
+
     t0 = time.monotonic()
     total_tokens = 0
 
@@ -450,7 +454,7 @@ async def find_skill_gaps(
             return SkillGapResult(gaps=[], tokens=0, time=0)
 
     try:
-        async with Client(_MCP_SERVER) as mcp:
+        async with Client(PythonStdioTransport(_MCP_SERVER_SCRIPT, args=[db_url])) as mcp:
             # Fetch all job tech_stacks via MCP (no direct SQL)
             try:
                 raw = await mcp.call_tool("get_all_tech_stacks", {})
@@ -508,7 +512,11 @@ async def find_skill_gaps(
 if __name__ == "__main__":
     base = Path(__file__).resolve().parent
     db = str(base / "data" / "jobs_d3_eval.db")
-    resumes = sorted((base / "data").glob("resume_d3_eval.txt"))
+    resumes = sorted((base / "data").glob("resume_d3_eval_test.txt"))
+    if not resumes:
+        print("Error: no matching resume files found in data/")
+        import sys
+        sys.exit(1)
     for resume in resumes:
         print(f"\n{'='*60}")
         print(f"Resume: {resume.name}")

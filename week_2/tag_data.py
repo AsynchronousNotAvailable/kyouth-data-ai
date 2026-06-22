@@ -26,6 +26,7 @@ from collections import Counter
 from pathlib import Path
 
 from fastmcp import Client
+from fastmcp.client.transports import PythonStdioTransport
 from google import genai
 from google.genai import types
 
@@ -67,7 +68,7 @@ def _get_cloud_params(model: str) -> tuple[int, int, float]:
 
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-_MODEL = Models.CLOUD_MODELS.GEMINI_3_FLASH_PREVIEW   # change to any Local/Cloud model
+_MODEL = Models.LOCAL_MODELS.LLAMA3_1_LATEST   # change to any Local/Cloud model
 _MAX_RETRIES = 3
 _RETRY_DELAY = 60           # s — one full RPM window resets the quota counter
 _MAX_DESC_CHARS = 500       # truncate descriptions for prompt optimisation
@@ -78,16 +79,16 @@ _RPM = 5
 _BATCH_SIZE = 10
 _SLOT_DURATION = 60 / _RPM
 
-_MCP_SERVER = str(Path(__file__).parent / "mcp_server.py")
+_MCP_SERVER_SCRIPT = str(Path(__file__).parent / "mcp_server.py")
 
 _PROMPT_TMPL = """\
 Extract the tech stack from each job description below.
 Rules:
 - Output specific tools, languages, or frameworks (e.g. Python, React, PostgreSQL, Docker, AWS).
 - If the description is vague but hints at a common stack, make your best guess based on the role and context. You can try to guess the job scope then derived possible tech stack will be used.
-- If the context is too vague to make any reasonable guess, strictly output N/A.
+- If the context is too vague to make any reasonable guess, strictly output N/A, no other words other than N/A. Output one line per job, no extra text. For N/A, JUST OUTPUT N/A
 - Exclude only soft skills (leadership, communication) and business process terms (agile, scrum).
-- Output one line per job, no extra text.
+
 
 Format: [id] - Skill1, Skill2, Skill3
 
@@ -138,13 +139,9 @@ def _parse_response(text: str, expected_ids: list[str]) -> dict[str, str] | None
             result[sid] = value
 
     if len(result) != len(expected_ids):
-        matched = set(result.keys())
-        missing = id_set - matched
-        print(f"[DEBUG] matched {len(result)}/{len(expected_ids)} ids")
-        print(f"[DEBUG] missing ids: {missing}")
-        print(f"[DEBUG] raw text:\n{text}\n---")
-        return None
-    return result
+        missing = id_set - set(result.keys())
+        print(f"[DEBUG] partial match {len(result)}/{len(expected_ids)} — missing: {missing}")
+    return result or None
 
 
 def _fallback_tokens(text: str) -> int:
@@ -302,8 +299,12 @@ async def _process_batch(
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
-async def tag_data(model: str = _MODEL) -> tuple[int, float]:
+async def tag_data(db_url: str, model: str = _MODEL) -> tuple[int, float]:
     """Tag all untagged jobs. Returns (total_tokens, elapsed_ms)."""
+    if not Path(db_url).exists():
+        print(f"Error: database not found at {db_url}")
+        return 0, 0.0
+
     t0 = time.monotonic()
     total_tokens = 0
 
@@ -325,7 +326,7 @@ async def tag_data(model: str = _MODEL) -> tuple[int, float]:
             return 0, (time.monotonic() - t0) * 1000
 
     try:
-        async with Client(_MCP_SERVER) as mcp:
+        async with Client(PythonStdioTransport(_MCP_SERVER_SCRIPT, args=[db_url])) as mcp:
             try:
                 raw = await mcp.call_tool("get_untagged_jobs", {})
                 rows: list[dict] = json.loads(raw.content[0].text)
@@ -367,9 +368,7 @@ async def tag_data(model: str = _MODEL) -> tuple[int, float]:
 # ── Script entry point ────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    from database.config import init_db
+    db_path = Path(__file__).resolve().parent / "data" / "jobs_1.db"
 
-    init_db(Path(__file__).resolve().parent / "data" / "jobs.db")
-
-    tokens, ms = asyncio.run(tag_data())
+    tokens, ms = asyncio.run(tag_data(str(db_path)))
     print(f"\nTotal tokens used: {tokens}, took {ms:.3f}ms")

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-_DB_URL = Path(__file__).parent / "data" / "jobs.db"
+_DB_URL = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "data" / "jobs.db"
 
 mcp = FastMCP("jobs-db")
 
