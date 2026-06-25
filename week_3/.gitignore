@@ -10,3 +10,4 @@ wheels/
 /*.env
 
 /.venv
+docker.env

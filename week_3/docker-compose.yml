@@ -1,28 +1,41 @@
 services:
 
+  # ── Ollama — local LLM server ──────────────────────────────────────────────
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     - app-network
+  #   healthcheck:
+  #     test: ["CMD", "ollama", "list"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 20s
+
   # ── Backend (chat API + DB queries) ────────────────────────────────────────
   backend:
-    build: ./backend
+    image: dd3638271007/kyouth-backend:latest
+    env_file: docker.env
     ports:
       - "8001:8001"
-    environment:
-      # Points to your local machine's Ollama — no ollama container needed
-      - OLLAMA_HOST=http://host.docker.internal:11434
-      - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3.1:latest}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - DB_PATH=/data/jobs.db
     volumes:
-      - ../week_1/data/3_gold/jobs.db:/data/jobs.db:ro
+      - ../week_2/data/jobs.db:/data/jobs.db:ro
     networks:
       - app-network
+    # depends_on:
+    #   ollama:
+    #     condition: service_healthy
 
   # ── Frontend — landing (/) + chat app (/app) ──────────────────────────────
   frontend:
-    build: ./frontend
+    image: dd3638271007/kyouth-frontend:latest
+    env_file: docker.env
     ports:
       - "8000:8000"
-    environment:
-      - BACKEND_URL=${BACKEND_URL:-http://localhost:8001}
     networks:
       - app-network
     depends_on:
@@ -31,3 +44,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  ollama_data:

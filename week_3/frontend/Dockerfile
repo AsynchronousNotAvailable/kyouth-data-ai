@@ -3,6 +3,8 @@ FROM python:3.14.4-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+ENV BACKEND_URL=http://localhost:8001
+
 RUN pip install uv
 
 WORKDIR /app

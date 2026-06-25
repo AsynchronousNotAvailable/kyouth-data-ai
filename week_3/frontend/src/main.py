@@ -3,6 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 load_dotenv()
@@ -10,7 +11,10 @@ load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8001")
 
 app = FastAPI(title="Resume Helper Frontend")
-templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+_here = Path(__file__).parent
+app.mount("/static", StaticFiles(directory=_here / "static"), name="static")
+templates = Jinja2Templates(directory=_here / "templates")
 
 
 @app.get("/")
