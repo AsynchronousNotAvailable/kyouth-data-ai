@@ -8,6 +8,7 @@ wheels/
 
 *.env
 /*.env
+!docker.example.env
 
 /.venv
 docker.env
