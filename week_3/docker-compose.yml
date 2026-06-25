@@ -1,24 +1,24 @@
 services:
 
   # ── Ollama — local LLM server ──────────────────────────────────────────────
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   ports:
-  #     - "11434:11434"
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   networks:
-  #     - app-network
-  #   healthcheck:
-  #     test: ["CMD", "ollama", "list"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 10
-  #     start_period: 20s
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # ── Backend (chat API + DB queries) ────────────────────────────────────────
   backend:
-    image: dd3638271007/kyouth-backend:latest
+    build: ./backend
     env_file: docker.env
     ports:
       - "8001:8001"
@@ -26,16 +26,17 @@ services:
       - ../week_2/data/jobs.db:/data/jobs.db:ro
     networks:
       - app-network
-    # depends_on:
-    #   ollama:
-    #     condition: service_healthy
+    depends_on:
+      ollama:
+        condition: service_healthy
 
   # ── Frontend — landing (/) + chat app (/app) ──────────────────────────────
   frontend:
-    image: dd3638271007/kyouth-frontend:latest
-    env_file: docker.env
+    build: ./frontend
     ports:
       - "8000:8000"
+    environment:
+      - BACKEND_URL=http://localhost:8001
     networks:
       - app-network
     depends_on:
