@@ -1,209 +1,204 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
-  <style>
-    html, body { height: 100%; }
-    body { background: #f0f2f5; }
-
-    /* ── Chat ── */
-    #chat-history {
-      height: calc(100vh - 260px);
-      min-height: 300px;
-      overflow-y: auto;
-      background: #fff;
-      border-radius: 0.5rem;
-      padding: 1rem;
-    }
-    .msg-bubble {
-      max-width: 75%;
-      padding: 0.55rem 0.85rem;
-      border-radius: 1rem;
-      margin-bottom: 0.5rem;
-      line-height: 1.45;
-      word-break: break-word;
-    }
-    .msg-user   { background: #0d6efd; color: #fff; border-bottom-right-radius: 0.2rem; }
-    .msg-bot    { background: #e9ecef; color: #212529; border-bottom-left-radius: 0.2rem; }
-    .msg-bot p  { margin-bottom: 0.4rem; }
-    .msg-bot p:last-child { margin-bottom: 0; }
-    .msg-bot ul, .msg-bot ol { padding-left: 1.25rem; margin-bottom: 0.4rem; }
-    .msg-bot li { margin-bottom: 0.2rem; }
-    .msg-bot strong { font-weight: 600; }
-    .msg-bot code { background: #d0d3d8; border-radius: 0.25rem; padding: 0.1rem 0.35rem; font-size: 0.85em; }
-    .msg-system { background: #fff3cd; color: #856404; font-size: 0.82rem; border-radius: 0.4rem; }
-
-    /* ── PDF badge ── */
-    #pdf-badge { display: none; }
-
-    /* ── Dashboard ── */
-    .chart-card { height: 340px; }
-    .chart-card canvas { max-height: 280px; }
-
-    /* ── Table ── */
-    #results-table { font-size: 0.85rem; }
-    .tech-pill {
-      display: inline-block;
-      background: #e7f1ff;
-      color: #0a58ca;
-      border-radius: 999px;
-      padding: 0.1rem 0.55rem;
-      margin: 0.1rem;
-      font-size: 0.75rem;
-    }
-  </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-dark bg-primary shadow-sm">
-  <div class="container-fluid">
-    <span class="navbar-brand fw-semibold"><i class="bi bi-robot me-2"></i>Resume Helper</span>
-    <ul class="nav nav-pills" id="mainTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active text-white" id="chat-tab" data-bs-toggle="pill" data-bs-target="#chat-pane" type="button">
-          <i class="bi bi-chat-dots me-1"></i>Chat
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link text-white" id="dash-tab" data-bs-toggle="pill" data-bs-target="#dash-pane" type="button">
-          <i class="bi bi-bar-chart-line me-1"></i>Jobs Dashboard
-        </button>
-      </li>
-    </ul>
-  </div>
+<!-- ── Navbar ─────────────────────────────────────────────────────────────── -->
+<nav class="navbar app-navbar shadow-sm px-3 px-md-4" style="height:57px">
+  <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2 text-decoration-none" href="/">
+    <i class="bi bi-cpu-fill" style="color:var(--accent)"></i> KYouth AI
+  </a>
+
+  <ul class="nav nav-pills gap-1" id="mainTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-pill-btn active" id="chat-tab"
+              data-bs-toggle="pill" data-bs-target="#chat-pane" type="button" role="tab">
+        <i class="bi bi-chat-dots me-1"></i>Chat
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-pill-btn" id="dash-tab"
+              data-bs-toggle="pill" data-bs-target="#dash-pane" type="button" role="tab">
+        <i class="bi bi-bar-chart-line me-1"></i>Jobs Dashboard
+      </button>
+    </li>
+  </ul>
 </nav>
 
-<div class="container-fluid py-3 px-3 px-md-4">
-  <div class="tab-content">
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<div class="page-body">
+<div class="tab-content" id="mainTabContent">
 
-    <!-- ═══════════════════════════ CHAT PANE ═══════════════════════════ -->
-    <div class="tab-pane fade show active" id="chat-pane" role="tabpanel">
-      <div class="row justify-content-center">
-        <div class="col-12 col-lg-8 col-xl-7">
+  <!-- ════════════ CHAT PANE ════════════ -->
+  <div class="tab-pane fade show active" id="chat-pane" role="tabpanel">
+    <div class="chat-inner">
 
-          <!-- History -->
-          <div id="chat-history" class="shadow-sm mb-3">
-            <div class="d-flex justify-content-start mb-2">
-              <div class="msg-bubble msg-bot">
-                Hi! I'm your resume helper. Ask me anything about your CV, or upload a PDF resume to get started.
-              </div>
-            </div>
+      <!-- History -->
+      <div id="chat-history">
+        <div class="msg-wrap bot">
+          <div class="msg-label">Bot</div>
+          <div class="msg-bubble msg-bot">
+            Hi! I'm your resume helper. Ask me anything about your CV, or attach a PDF resume to get personalised advice.
           </div>
-
-          <!-- Input area -->
-          <div class="card shadow-sm">
-            <div class="card-body p-2">
-
-              <!-- PDF badge (hidden until a file is chosen) -->
-              <div id="pdf-badge" style="display:none" class="align-items-center gap-2 mb-2 p-2 bg-light rounded">
-                <i class="bi bi-file-earmark-pdf text-danger fs-5"></i>
-                <span id="pdf-filename" class="text-truncate small fw-medium flex-grow-1"></span>
-                <span id="pdf-status" class="badge bg-primary">Attached</span>
-                <button class="btn btn-sm btn-outline-secondary py-0" id="remove-pdf" title="Remove PDF">
-                  <i class="bi bi-x"></i>
-                </button>
-              </div>
-
-              <div class="d-flex gap-2">
-                <!-- PDF upload -->
-                <label for="pdf-input" class="btn btn-outline-secondary" title="Attach PDF">
-                  <i class="bi bi-paperclip"></i>
-                </label>
-                <input type="file" id="pdf-input" accept=".pdf" class="d-none">
-
-                <!-- Text input -->
-                <textarea id="user-input" class="form-control" rows="2"
-                          placeholder="Type your message… (Shift+Enter for newline, Enter to send)"></textarea>
-
-                <!-- Send -->
-                <button id="send-btn" class="btn btn-primary px-3" title="Send">
-                  <i class="bi bi-send-fill"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
-    </div><!-- /chat-pane -->
 
-    <!-- ═══════════════════════════ DASHBOARD PANE ═══════════════════════════ -->
-    <div class="tab-pane fade" id="dash-pane" role="tabpanel">
+      <!-- Input card -->
+      <div class="input-card">
 
-      <!-- Charts row -->
+        <!-- PDF badge -->
+        <div id="pdf-badge">
+          <i class="bi bi-file-earmark-pdf"></i>
+          <span id="pdf-filename" class="text-truncate flex-grow-1 fw-medium" style="color:#e6edf3"></span>
+          <span id="pdf-status" class="badge" style="background:var(--accent)">Attached</span>
+          <button class="btn btn-sm btn-attach py-0 px-2" id="remove-pdf" title="Remove">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+
+        <div class="d-flex gap-2 align-items-end">
+          <label for="pdf-input" class="btn btn-attach mb-0" style="height:40px;line-height:28px" title="Attach PDF">
+            <i class="bi bi-paperclip"></i>
+          </label>
+          <input type="file" id="pdf-input" accept=".pdf" class="d-none">
+
+          <textarea id="user-input" class="form-control flex-grow-1" rows="2"
+                    placeholder="Type your message… (Shift+Enter for newline, Enter to send)"></textarea>
+
+          <button id="send-btn" class="btn btn-send" style="height:40px" title="Send">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-end mt-2" style="font-size:.72rem;color:var(--text-muted)">
+          <span>
+            <kbd style="background:var(--surface-3);border:1px solid var(--border);color:var(--text-muted)">Enter</kbd> send &nbsp;·&nbsp;
+            <kbd style="background:var(--surface-3);border:1px solid var(--border);color:var(--text-muted)">Shift+Enter</kbd> newline
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /chat-pane -->
+
+  <!-- ════════════ DASHBOARD PANE ════════════ -->
+  <div class="tab-pane fade" id="dash-pane" role="tabpanel">
+    <div style="max-width:1200px;margin:0 auto;padding:1.25rem 1rem">
+
+      <!-- Charts row 1 -->
       <div class="row g-3 mb-3">
-        <!-- Pie: role categories -->
         <div class="col-12 col-md-5">
-          <div class="card shadow-sm chart-card">
-            <div class="card-header fw-semibold"><i class="bi bi-pie-chart me-1"></i>Job Role Distribution</div>
-            <div class="card-body d-flex align-items-center justify-content-center">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <i class="bi bi-pie-chart me-1" style="color:var(--accent)"></i>Job Role Distribution
+            </div>
+            <div class="chart-wrap">
               <canvas id="roleChart"></canvas>
             </div>
           </div>
         </div>
-        <!-- Bar: locations -->
         <div class="col-12 col-md-7">
-          <div class="card shadow-sm chart-card">
-            <div class="card-header fw-semibold"><i class="bi bi-geo-alt me-1"></i>Jobs by Location</div>
-            <div class="card-body">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <i class="bi bi-geo-alt me-1" style="color:var(--green-hl)"></i>Jobs by Location
+            </div>
+            <div class="chart-wrap">
               <canvas id="locationChart"></canvas>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Search + table -->
-      <div class="card shadow-sm">
-        <div class="card-header fw-semibold d-flex align-items-center gap-2">
-          <i class="bi bi-search"></i>
-          <input type="text" id="search-input" class="form-control form-control-sm"
-                 placeholder="Search by title, company, or tech stack…" style="max-width:360px">
-          <span id="result-count" class="badge bg-secondary ms-auto"></span>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive" style="max-height:420px;overflow-y:auto">
-            <table class="table table-hover table-sm mb-0" id="results-table">
-              <thead class="table-light sticky-top">
-                <tr>
-                  <th>Job Title</th>
-                  <th>Company</th>
-                  <th>Tech Stack</th>
-                </tr>
-              </thead>
-              <tbody id="results-body">
-                <tr><td colspan="3" class="text-center text-muted py-4">Loading…</td></tr>
-              </tbody>
-            </table>
+      <!-- Charts row 2 — Top Tech Skills -->
+      <div class="row g-3 mb-3">
+        <div class="col-12">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <i class="bi bi-code-slash me-1" style="color:var(--blue-hl)"></i>Top 15 In-Demand Tech Skills
+            </div>
+            <div style="position:relative;height:320px;padding:1rem">
+              <canvas id="skillChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
 
-    </div><!-- /dash-pane -->
-  </div><!-- /tab-content -->
+      <!-- Search + table -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <i class="bi bi-search" style="color:var(--text-muted)"></i>
+            <input type="text" id="search-input" class="form-control form-control-sm"
+                   placeholder="Search jobs…" style="max-width:260px">
+
+            <!-- Filter pills -->
+            <div class="filter-pills">
+              <button class="filter-pill active" data-field="all">All Fields</button>
+              <button class="filter-pill" data-field="title">
+                <i class="bi bi-briefcase me-1"></i>Job Title
+              </button>
+              <button class="filter-pill" data-field="company">
+                <i class="bi bi-building me-1"></i>Company
+              </button>
+              <button class="filter-pill" data-field="description">
+                <i class="bi bi-file-text me-1"></i>Description
+              </button>
+              <button class="filter-pill" data-field="tech_stack">
+                <i class="bi bi-code-slash me-1"></i>Tech Stack
+              </button>
+            </div>
+
+            <span id="result-count" class="ms-auto badge"
+                  style="background:var(--surface-1);border:1px solid var(--border);color:var(--text-muted);font-weight:500"></span>
+          </div>
+        </div>
+        <div style="max-height:420px;overflow-y:auto">
+          <table class="table table-hover mb-0" id="results-table">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Tech Stack</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <tr><td colspan="3" class="text-center py-4" style="color:var(--text-muted)">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /dash-pane -->
+
+</div>
 </div>
 
-<!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+<!-- ── Scripts ────────────────────────────────────────────────────────────── -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
-  // ── Config injected by server ─────────────────────────────────────────────
   const BACKEND_URL = "{{ backend_url }}";
 
-  // ── PDF.js worker ─────────────────────────────────────────────────────────
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-  // ══════════════════════════════════════════════════════════════════════════
+  Chart.defaults.color = "#8b949e";
+  Chart.defaults.borderColor = "#30363d";
+
+  // ════════════════════════════════════════════════════════════════════════════
   // CHAT
-  // ══════════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════════
   const chatHistory = document.getElementById("chat-history");
   const userInput   = document.getElementById("user-input");
   const sendBtn     = document.getElementById("send-btn");
@@ -217,7 +212,13 @@
 
   function appendMessage(text, role) {
     const wrap = document.createElement("div");
-    wrap.className = `d-flex ${role === "user" ? "justify-content-end" : "justify-content-start"} mb-2`;
+    wrap.className = `msg-wrap ${role}`;
+
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = role === "user" ? "You" : "Bot";
+    wrap.appendChild(label);
+
     const bubble = document.createElement("div");
     bubble.className = `msg-bubble msg-${role}`;
     if (role === "bot") {
@@ -231,14 +232,33 @@
   }
 
   function appendSystem(text) {
+    const el = document.createElement("div");
+    el.className = "msg-system";
+    el.textContent = text;
+    chatHistory.appendChild(el);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+  }
+
+  function showTyping() {
     const wrap = document.createElement("div");
-    wrap.className = "d-flex justify-content-center mb-2";
+    wrap.className = "msg-wrap bot";
+    wrap.id = "typing-indicator";
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = "Bot";
+    wrap.appendChild(label);
     const bubble = document.createElement("div");
-    bubble.className = "msg-bubble msg-system";
-    bubble.textContent = text;
+    bubble.className = "msg-bubble msg-bot d-flex gap-1 align-items-center";
+    bubble.style.padding = ".55rem .9rem";
+    bubble.innerHTML = `<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>`;
     wrap.appendChild(bubble);
     chatHistory.appendChild(wrap);
     chatHistory.scrollTop = chatHistory.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
   }
 
   async function sendMessage() {
@@ -249,24 +269,28 @@
     userInput.value = "";
     sendBtn.disabled = true;
 
-    // Extract PDF text now, at send time
     let pdfText = "";
     if (pendingPdfFile) {
       pdfStatus.textContent = "Extracting…";
-      pdfStatus.className = "badge bg-warning text-dark";
+      pdfStatus.style.background = "#f0c14b";
+      pdfStatus.style.color = "#0d1117";
       try {
         pdfText = await extractPdfText(pendingPdfFile);
         pdfStatus.textContent = `${pdfText.length.toLocaleString()} chars`;
-        pdfStatus.className = "badge bg-success";
+        pdfStatus.style.background = "#56d364";
+        pdfStatus.style.color = "#0d1117";
       } catch (err) {
         pdfStatus.textContent = "Failed";
-        pdfStatus.className = "badge bg-danger";
+        pdfStatus.style.background = "#f47174";
+        pdfStatus.style.color = "#fff";
         appendSystem(`Could not parse PDF: ${err.message}`);
         sendBtn.disabled = false;
         userInput.focus();
         return;
       }
     }
+
+    showTyping();
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
@@ -275,8 +299,10 @@
         body: JSON.stringify({ message: text, pdf_text: pdfText }),
       });
       const data = await res.json();
+      removeTyping();
       appendMessage(data.reply ?? JSON.stringify(data), "bot");
     } catch (err) {
+      removeTyping();
       appendSystem(`Error: ${err.message}`);
     } finally {
       sendBtn.disabled = false;
@@ -289,7 +315,7 @@
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 
-  // ── PDF handling ──────────────────────────────────────────────────────────
+  // ── PDF ───────────────────────────────────────────────────────────────────
   async function extractPdfText(file) {
     const buffer = await file.arrayBuffer();
     const pdf    = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -308,7 +334,8 @@
     pendingPdfFile = file;
     pdfFilename.textContent = file.name;
     pdfStatus.textContent = "Attached";
-    pdfStatus.className = "badge bg-primary";
+    pdfStatus.style.background = "var(--accent)";
+    pdfStatus.style.color = "#fff";
     pdfBadge.style.display = "flex";
   });
 
@@ -318,98 +345,166 @@
     pdfBadge.style.display = "none";
   });
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════════
   // DASHBOARD
-  // ══════════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════════
   const PALETTE = [
-    "#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
-    "#edc948","#b07aa1","#ff9da7","#9c755f","#bab0ac",
+    "#4e79a7","#76b7b2","#56d364","#f0c14b","#79c0ff",
+    "#f47174","#b07aa1","#ff9da7","#a5d6ff","#8b949e",
   ];
 
-  let roleChart = null;
-  let locationChart = null;
+  let roleChart = null, locationChart = null, skillChart = null;
 
   async function loadDashboard() {
-    const res   = await fetch(`${BACKEND_URL}/api/stats`);
-    const stats = await res.json();
+    let stats;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/stats`);
+      stats = await res.json();
+    } catch (err) {
+      console.error("loadDashboard fetch failed:", err);
+      return;
+    }
 
     // Pie — roles
     const roleLabels = Object.keys(stats.roles);
     const roleVals   = Object.values(stats.roles);
-
     if (roleChart) roleChart.destroy();
     roleChart = new Chart(document.getElementById("roleChart"), {
       type: "pie",
       data: {
         labels: roleLabels,
-        datasets: [{ data: roleVals, backgroundColor: PALETTE.slice(0, roleLabels.length), borderWidth: 1 }],
+        datasets: [{
+          data: roleVals,
+          backgroundColor: PALETTE.slice(0, roleLabels.length),
+          borderColor: "#161b22",
+          borderWidth: 2,
+        }],
       },
       options: {
-        plugins: { legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } } },
+        plugins: {
+          legend: { position: "right", labels: { boxWidth: 11, font: { size: 11 }, color: "#8b949e" } },
+        },
         maintainAspectRatio: false,
       },
     });
 
-    // Bar — locations (sort descending)
+    // Bar — locations
     const locEntries = Object.entries(stats.locations).sort((a, b) => b[1] - a[1]);
     const locLabels  = locEntries.map(([k]) => k);
     const locVals    = locEntries.map(([, v]) => v);
-
     if (locationChart) locationChart.destroy();
     locationChart = new Chart(document.getElementById("locationChart"), {
       type: "bar",
       data: {
         labels: locLabels,
-        datasets: [{
-          label: "# of Jobs",
-          data: locVals,
-          backgroundColor: "#4e79a7",
-          borderRadius: 4,
-        }],
+        datasets: [{ label: "# of Jobs", data: locVals, backgroundColor: "#4e79a7", borderRadius: 4 }],
       },
       options: {
         indexAxis: "y",
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1, color: "#8b949e" }, grid: { color: "#21262d" } },
+          y: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } },
+        },
         maintainAspectRatio: false,
       },
     });
+
+    // Bar — top skills
+    if (stats.top_skills && Object.keys(stats.top_skills).length) {
+      const skillEntries = Object.entries(stats.top_skills);
+      const skillLabels  = skillEntries.map(([k]) => k);
+      const skillVals    = skillEntries.map(([, v]) => v);
+      const skillColors  = skillLabels.map((_, i) =>
+        `hsl(${Math.round((i / skillLabels.length) * 200 + 190)}, 65%, 55%)`
+      );
+      if (skillChart) skillChart.destroy();
+      skillChart = new Chart(document.getElementById("skillChart"), {
+        type: "bar",
+        data: {
+          labels: skillLabels,
+          datasets: [{
+            label: "Jobs requiring skill",
+            data: skillVals,
+            backgroundColor: skillColors,
+            borderRadius: 5,
+          }],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#8b949e", font: { size: 11 } }, grid: { color: "#21262d" } },
+            y: { beginAtZero: true, ticks: { stepSize: 1, color: "#8b949e" }, grid: { color: "#21262d" } },
+          },
+          maintainAspectRatio: false,
+        },
+      });
+    }
   }
 
-  // ── Search / table ────────────────────────────────────────────────────────
+  // ── Search + filter ───────────────────────────────────────────────────────
   const searchInput  = document.getElementById("search-input");
   const resultsBody  = document.getElementById("results-body");
   const resultCount  = document.getElementById("result-count");
+  const filterPills  = document.querySelectorAll(".filter-pill");
 
-  function renderRows(jobs) {
-    resultCount.textContent = `${jobs.length} result${jobs.length !== 1 ? "s" : ""}`;
-    if (!jobs.length) {
-      resultsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">No results found.</td></tr>`;
-      return;
-    }
-    resultsBody.innerHTML = jobs.map(j => {
-      const pills = j.tech_stack
-        ? j.tech_stack.split(/[,;|]+/).map(t => t.trim()).filter(Boolean)
-            .map(t => `<span class="tech-pill">${escHtml(t)}</span>`).join("")
-        : '<span class="text-muted small">—</span>';
-      // Strip " - Jobstreet" suffix from title for cleaner display
-      const title = j.job_title.replace(/ - Jobstreet$/, "");
-      return `<tr>
-        <td>${escHtml(title)}</td>
-        <td>${escHtml(j.company)}</td>
-        <td>${pills}</td>
-      </tr>`;
-    }).join("");
-  }
+  let activeField = "all";
+
+  filterPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      filterPills.forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      activeField = pill.dataset.field;
+
+      // Update placeholder to reflect active filter
+      const labels = {
+        all:         "Search jobs…",
+        title:       "Search by job title…",
+        company:     "Search by company…",
+        description: "Search by description…",
+        tech_stack:  "Search by tech stack…",
+      };
+      searchInput.placeholder = labels[activeField] || "Search jobs…";
+
+      fetchJobs(searchInput.value);
+    });
+  });
 
   function escHtml(str) {
     return (str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
+  function highlight(str, q) {
+    if (!q) return escHtml(str);
+    const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return escHtml(str).replace(new RegExp(`(${safe})`, "gi"), "<mark>$1</mark>");
+  }
+
+  function renderRows(jobs, q) {
+    resultCount.textContent = `${jobs.length} result${jobs.length !== 1 ? "s" : ""}`;
+    if (!jobs.length) {
+      resultsBody.innerHTML = `<tr><td colspan="3" class="text-center py-4" style="color:var(--text-muted)">No results found.</td></tr>`;
+      return;
+    }
+    resultsBody.innerHTML = jobs.map(j => {
+      const pills = j.tech_stack
+        ? j.tech_stack.split(/[,;|]+/).map(t => t.trim()).filter(Boolean)
+            .map(t => `<span class="tech-pill">${highlight(t, activeField === "tech_stack" ? q : "")}</span>`).join("")
+        : `<span style="color:var(--text-muted);font-size:.8rem">—</span>`;
+      const title = j.job_title.replace(/ - Jobstreet$/, "");
+      return `<tr>
+        <td>${highlight(title, activeField === "title" || activeField === "all" ? q : "")}</td>
+        <td style="color:var(--text-muted)">${highlight(j.company, activeField === "company" || activeField === "all" ? q : "")}</td>
+        <td>${pills}</td>
+      </tr>`;
+    }).join("");
+  }
+
   async function fetchJobs(q = "") {
-    const res  = await fetch(`${BACKEND_URL}/api/jobs/search?q=${encodeURIComponent(q)}`);
+    const url = `${BACKEND_URL}/api/jobs/search?q=${encodeURIComponent(q)}&field=${activeField}`;
+    const res  = await fetch(url);
     const jobs = await res.json();
-    renderRows(Array.isArray(jobs) ? jobs : []);
+    renderRows(Array.isArray(jobs) ? jobs : [], q);
   }
 
   let debounceTimer;
@@ -418,7 +513,6 @@
     debounceTimer = setTimeout(() => fetchJobs(searchInput.value), 300);
   });
 
-  // Load dashboard when tab first shown
   document.getElementById("dash-tab").addEventListener("shown.bs.tab", () => {
     if (!roleChart) {
       loadDashboard();
