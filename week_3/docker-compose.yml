@@ -1,0 +1,33 @@
+services:
+
+  # ── Backend (chat API + DB queries) ────────────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    environment:
+      # Points to your local machine's Ollama — no ollama container needed
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3.1:latest}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DB_PATH=/data/jobs.db
+    volumes:
+      - ../week_1/data/3_gold/jobs.db:/data/jobs.db:ro
+    networks:
+      - app-network
+
+  # ── Frontend — landing (/) + chat app (/app) ──────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "8000:8000"
+    environment:
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8001}
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
