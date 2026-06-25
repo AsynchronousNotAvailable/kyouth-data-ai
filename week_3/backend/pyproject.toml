@@ -11,4 +11,5 @@ dependencies = [
     "google-genai>=1.0.0",
     "pydantic-settings>=2.14.1",
     "python-dotenv>=1.2.2",
+    "ruff>=0.15.20",
 ]
