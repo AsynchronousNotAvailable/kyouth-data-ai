@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KYouth AI Pipeline</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #4e79a7;
+      --accent-light: #76b7b2;
+      --hero-bg: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ── Navbar ── */
+    .navbar { background: rgba(13,17,23,.92) !important; backdrop-filter: blur(12px); border-bottom: 1px solid #30363d; }
+    .nav-link { color: #8b949e !important; transition: color .2s; }
+    .nav-link:hover, .nav-link.active { color: #e6edf3 !important; }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      background: var(--hero-bg);
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(78,121,167,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 10% 80%, rgba(118,183,178,.12) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(78,121,167,.15); border: 1px solid rgba(78,121,167,.4);
+      border-radius: 999px; padding: .3rem .9rem; font-size: .82rem; color: #79c0ff;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title { font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+    .hero-title span { background: linear-gradient(135deg, #79c0ff, #56d364); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-sub { font-size: 1.15rem; color: #8b949e; max-width: 560px; line-height: 1.7; }
+    .btn-accent { background: var(--accent); border: none; color: #fff; }
+    .btn-accent:hover { background: #3a6a9a; color: #fff; }
+
+    /* ── Section titles ── */
+    .section-title { font-size: 1.85rem; font-weight: 700; }
+    .section-sub { color: #8b949e; }
+    section { padding: 5rem 0; }
+    section:nth-child(even) { background: #0d1117; }
+    section:nth-child(odd) { background: #161b22; }
+
+    /* ── Pipeline steps ── */
+    .week-card {
+      background: #21262d; border: 1px solid #30363d; border-radius: 1rem;
+      padding: 2rem; height: 100%; transition: border-color .2s, transform .2s;
+    }
+    .week-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .week-icon { width: 56px; height: 56px; border-radius: .75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem; }
+    .w1 { background: rgba(240,193,75,.12); color: #f0c14b; }
+    .w2 { background: rgba(86,211,100,.12); color: #56d364; }
+    .w3 { background: rgba(121,192,255,.12); color: #79c0ff; }
+
+    /* ── Architecture flow ── */
+    .arch-node {
+      background: #21262d; border: 1px solid #30363d; border-radius: .75rem;
+      padding: .75rem 1.25rem; text-align: center; font-size: .85rem; font-weight: 600;
+      white-space: nowrap;
+    }
+    .arch-node .label { font-size: .7rem; color: #8b949e; font-weight: 400; display: block; margin-top: .2rem; }
+    .arch-arrow { color: #30363d; font-size: 1.4rem; display: flex; align-items: center; }
+
+    /* ── Feature cards ── */
+    .feat-card { background: #21262d; border: 1px solid #30363d; border-radius: .75rem; padding: 1.5rem; }
+    .feat-icon { font-size: 2rem; margin-bottom: .75rem; }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: #161b22; border: 1px solid #30363d; border-radius: .75rem;
+      padding: 1.25rem 1.5rem; font-family: 'Consolas', 'SF Mono', monospace; font-size: .82rem;
+      overflow-x: auto; position: relative;
+    }
+    .code-block .comment { color: #8b949e; }
+    .code-block .cmd { color: #79c0ff; }
+    .code-block .str { color: #a5d6ff; }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(78,121,167,.2); border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 700; color: #79c0ff; flex-shrink: 0;
+    }
+
+    /* ── Tech badges ── */
+    .tech-badge {
+      background: #21262d; border: 1px solid #30363d; border-radius: .5rem;
+      padding: .6rem 1rem; display: flex; align-items: center; gap: .6rem;
+      font-size: .85rem; font-weight: 500;
+    }
+    .tech-badge i { font-size: 1.2rem; }
+
+    /* ── Footer ── */
+    footer { background: #0d1117; border-top: 1px solid #21262d; padding: 2.5rem 0; color: #8b949e; font-size: .88rem; }
+
+    /* ── Scrollspy highlight ── */
+    .scrollspy-active { color: #e6edf3 !important; }
+  </style>
+</head>
+<body data-bs-spy="scroll" data-bs-target="#mainNav" data-bs-offset="80">
+
+<!-- ══════════════════════════════ NAVBAR ══════════════════════════════ -->
+<nav id="mainNav" class="navbar navbar-expand-lg fixed-top shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="#hero">
+      <i class="bi bi-cpu-fill text-primary"></i> KYouth AI
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLinks">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navLinks">
+      <ul class="navbar-nav ms-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#architecture">Architecture</a></li>
+        <li class="nav-item"><a class="nav-link" href="#quickstart">Quick Start</a></li>
+        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="#usage">Usage</a></li>
+        <li class="nav-item"><a class="nav-link" href="#stack">Tech Stack</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════ HERO ══════════════════════════════ -->
+<section id="hero">
+  <div class="container position-relative">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="hero-badge">
+          <i class="bi bi-lightning-charge-fill"></i> Full-Stack AI Pipeline · 3-Week Build
+        </div>
+        <h1 class="hero-title mb-4">
+          Your AI-Powered<br><span>Resume Helper</span>
+        </h1>
+        <p class="hero-sub mb-5">
+          A production-grade AI system that scrapes the Malaysian job market,
+          analyses it with local and cloud LLMs, and serves an interactive
+          chat + dashboard to help you land your next tech role.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/app" class="btn btn-accent btn-lg px-4">
+            <i class="bi bi-play-fill me-2"></i>Launch App
+          </a>
+          <a href="#features" class="btn btn-outline-secondary btn-lg px-4">
+            <i class="bi bi-grid-3x3-gap me-2"></i>See Features
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <!-- Decorative terminal mockup -->
+        <div class="code-block" style="font-size:.8rem">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span style="width:12px;height:12px;border-radius:50%;background:#f47174;display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:50%;background:#f0c14b;display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:50%;background:#56d364;display:inline-block"></span>
+            <span class="ms-2" style="color:#8b949e;font-size:.75rem">terminal</span>
+          </div>
+          <div><span class="comment"># 1 — start the full stack</span></div>
+          <div><span class="cmd">$ docker compose up --build</span></div>
+          <div class="mt-2"><span style="color:#56d364">✓</span> <span style="color:#8b949e">ollama        running on :11434</span></div>
+          <div><span style="color:#56d364">✓</span> <span style="color:#8b949e">backend       running on :8001</span></div>
+          <div><span style="color:#56d364">✓</span> <span style="color:#8b949e">frontend      running on :8000</span></div>
+          <div class="mt-2"><span class="comment"># 2 — open your browser</span></div>
+          <div><span class="cmd">$ open </span><span class="str">http://localhost:8000</span></div>
+          <div class="mt-2"><span style="color:#56d364">✓</span> <span style="color:#8b949e">Chat with AI about your resume</span></div>
+          <div><span style="color:#56d364">✓</span> <span style="color:#8b949e">Explore 98 Malaysian tech jobs</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ ABOUT ══════════════════════════════ -->
+<section id="about">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">THREE WEEKS · THREE LAYERS</p>
+      <h2 class="section-title">What We Built</h2>
+      <p class="section-sub mx-auto" style="max-width:540px">
+        An end-to-end AI pipeline — from raw web scraping to a conversational interface — built incrementally over three weeks.
+      </p>
+    </div>
+    <div class="row g-4">
+      <!-- Week 1 -->
+      <div class="col-md-4">
+        <div class="week-card">
+          <div class="week-icon w1"><i class="bi bi-database-fill"></i></div>
+          <h5 class="fw-bold mb-1">Week 1 — Data Pipeline</h5>
+          <p class="text-secondary small mb-3">ETL · SQLite · Bronze / Silver / Gold</p>
+          <p class="small" style="color:#8b949e;line-height:1.7">
+            Scrape job listings from JobStreet Malaysia and push them through a
+            medallion ETL pipeline. Raw HTML lands in <em>Bronze</em>, cleaned
+            records in <em>Silver</em>, and analytics-ready rows in the <em>Gold</em>
+            SQLite database. 98 tech jobs covering AI, data engineering, and software roles.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <span class="badge bg-warning text-dark">Python</span>
+            <span class="badge bg-warning text-dark">SQLite</span>
+            <span class="badge bg-warning text-dark">BeautifulSoup</span>
+          </div>
+        </div>
+      </div>
+      <!-- Week 2 -->
+      <div class="col-md-4">
+        <div class="week-card">
+          <div class="week-icon w2"><i class="bi bi-robot"></i></div>
+          <h5 class="fw-bold mb-1">Week 2 — LLM Integration</h5>
+          <p class="text-secondary small mb-3">Ollama · Gemini · MCP Server</p>
+          <p class="small" style="color:#8b949e;line-height:1.7">
+            Connect local models (DeepSeek-R1, Llama 3.1, Phi-3, Qwen) via Ollama and
+            cloud models (Gemini 2.5 Flash) via Google's API. A unified
+            <code>prompt_model()</code> function routes requests to the right
+            backend. An MCP server exposes job data tools to AI clients.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <span class="badge bg-success">Ollama</span>
+            <span class="badge bg-success">Gemini</span>
+            <span class="badge bg-success">MCP</span>
+            <span class="badge bg-success">pydantic</span>
+          </div>
+        </div>
+      </div>
+      <!-- Week 3 -->
+      <div class="col-md-4">
+        <div class="week-card">
+          <div class="week-icon w3"><i class="bi bi-window-fullscreen"></i></div>
+          <h5 class="fw-bold mb-1">Week 3 — Web Application</h5>
+          <p class="text-secondary small mb-3">FastAPI · Bootstrap · Docker Compose</p>
+          <p class="small" style="color:#8b949e;line-height:1.7">
+            A two-service web stack: a <strong>frontend</strong> that serves a
+            Bootstrap chat UI and a <strong>backend</strong> that wraps the LLM
+            and DB queries. PDF resumes are parsed in-browser with PDF.js and
+            sent alongside messages. Chart.js renders live job market analytics.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <span class="badge bg-primary">FastAPI</span>
+            <span class="badge bg-primary">Bootstrap 5</span>
+            <span class="badge bg-primary">Chart.js</span>
+            <span class="badge bg-primary">Docker</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ ARCHITECTURE ══════════════════════════════ -->
+<section id="architecture">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">SYSTEM DESIGN</p>
+      <h2 class="section-title">Architecture</h2>
+      <p class="section-sub">How the pieces fit together at runtime</p>
+    </div>
+
+    <!-- Data flow diagram -->
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-5">
+      <div class="arch-node"><i class="bi bi-globe2 text-warning me-1"></i>JobStreet<span class="label">Web Source</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-funnel text-success me-1"></i>ETL Pipeline<span class="label">Bronze→Silver→Gold</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-database text-info me-1"></i>SQLite DB<span class="label">98 job rows</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-server text-primary me-1"></i>Backend API<span class="label">FastAPI :8001</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-layout-text-window text-secondary me-1"></i>Frontend<span class="label">FastAPI :8000</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-person-circle text-light me-1"></i>Browser<span class="label">Chat + Dashboard</span></div>
+    </div>
+
+    <!-- LLM branch -->
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-5">
+      <div class="arch-node"><i class="bi bi-chat-text text-light me-1"></i>User Message<span class="label">+ optional PDF text</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node"><i class="bi bi-server text-primary me-1"></i>POST /chat<span class="label">Backend</span></div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="arch-node" style="border-color:#56d364">
+        <i class="bi bi-cpu text-success me-1"></i>prompt_model()<span class="label">routes by model name</span>
+      </div>
+      <div class="arch-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div>
+        <div class="arch-node mb-2"><i class="bi bi-hdd-rack text-warning me-1"></i>Ollama<span class="label">local · llama3.1 / phi3 …</span></div>
+        <div class="arch-node"><i class="bi bi-cloud text-info me-1"></i>Gemini<span class="label">cloud · 2.5-flash</span></div>
+      </div>
+    </div>
+
+    <!-- Container map -->
+    <div class="row g-3 justify-content-center">
+      <div class="col-md-10">
+        <div class="code-block">
+          <div class="comment mb-2"># Docker network: app-network (bridge)</div>
+          <div class="d-flex flex-wrap gap-4">
+            <div>
+              <div style="color:#f0c14b">┌─ ollama ──────────────┐</div>
+              <div style="color:#f0c14b">│  image: ollama/ollama │</div>
+              <div style="color:#f0c14b">│  port:  11434         │</div>
+              <div style="color:#f0c14b">│  volume: ollama_data  │</div>
+              <div style="color:#f0c14b">└───────────────────────┘</div>
+            </div>
+            <div>
+              <div style="color:#56d364">┌─ backend ─────────────┐</div>
+              <div style="color:#56d364">│  build: ./backend     │</div>
+              <div style="color:#56d364">│  port:  8001          │</div>
+              <div style="color:#56d364">│  OLLAMA_HOST=ollama   │</div>
+              <div style="color:#56d364">└───────────────────────┘</div>
+            </div>
+            <div>
+              <div style="color:#79c0ff">┌─ frontend ────────────┐</div>
+              <div style="color:#79c0ff">│  build: .             │</div>
+              <div style="color:#79c0ff">│  port:  8000          │</div>
+              <div style="color:#79c0ff">│  BACKEND_URL=:8001    │</div>
+              <div style="color:#79c0ff">└───────────────────────┘</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ QUICK START ══════════════════════════════ -->
+<section id="quickstart">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">SETUP GUIDE</p>
+      <h2 class="section-title">Quick Start</h2>
+      <p class="section-sub">From zero to running in under 10 minutes</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-8">
+
+        <!-- Step 1 -->
+        <div class="d-flex gap-3 mb-4">
+          <div class="step-num">1</div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">Clone the repository</h6>
+            <div class="code-block">
+              <span class="cmd">git clone</span> <span class="str">https://github.com/AsynchronousNotAvailable/kyouth-data-ai</span><br>
+              <span class="cmd">cd</span> kyouth-data-ai/week_3
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="d-flex gap-3 mb-4">
+          <div class="step-num">2</div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">Run the Week 1 data pipeline <span class="badge bg-secondary fw-normal" style="font-size:.7rem">first time only</span></h6>
+            <div class="code-block">
+              <span class="comment"># Scrape jobs and build the SQLite database</span><br>
+              <span class="cmd">cd</span> ../week_1 &amp;&amp; <span class="cmd">uv run python</span> main.py<br>
+              <span class="comment"># Output: week_1/data/3_gold/jobs.db</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="d-flex gap-3 mb-4">
+          <div class="step-num">3</div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">Pull the LLM model into Ollama</h6>
+            <div class="code-block">
+              <span class="comment"># Start Ollama container and pull the model</span><br>
+              <span class="cmd">cd</span> week_3<br>
+              <span class="cmd">docker compose up</span> ollama <span class="str">-d</span><br>
+              <span class="cmd">docker compose exec</span> ollama ollama pull <span class="str">llama3.1:latest</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="d-flex gap-3 mb-4">
+          <div class="step-num">4</div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">(Optional) Add a Gemini API key for cloud models</h6>
+            <div class="code-block">
+              <span class="comment"># week_3/backend/.env</span><br>
+              GEMINI_API_KEY=<span class="str">your_key_here</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="d-flex gap-3 mb-4">
+          <div class="step-num">5</div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">Start the full stack</h6>
+            <div class="code-block">
+              <span class="cmd">docker compose up</span> <span class="str">--build</span><br><br>
+              <span class="comment"># Services:</span><br>
+              <span style="color:#56d364">✓</span> Frontend  → <span class="str">http://localhost:8000</span><br>
+              <span style="color:#56d364">✓</span> Backend   → <span class="str">http://localhost:8001</span><br>
+              <span style="color:#56d364">✓</span> Ollama    → <span class="str">http://localhost:11434</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ FEATURES ══════════════════════════════ -->
+<section id="features">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">WHAT YOU GET</p>
+      <h2 class="section-title">Features</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon text-primary"><i class="bi bi-chat-dots-fill"></i></div>
+          <h6 class="fw-bold">AI Resume Chat</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Ask the AI anything about your resume, skill gaps, or job market trends. Context-aware with a career-focused system prompt.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon text-warning"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+          <h6 class="fw-bold">PDF Resume Upload</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Upload your PDF resume — text is extracted client-side with PDF.js and attached to every AI message for personalised advice.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon text-success"><i class="bi bi-bar-chart-fill"></i></div>
+          <h6 class="fw-bold">Jobs Dashboard</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Interactive Chart.js visualisations — role distribution pie chart and job-by-location bar chart — powered by the live SQLite database.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon text-info"><i class="bi bi-search"></i></div>
+          <h6 class="fw-bold">Job Search</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Full-text search across 98 Malaysian tech job listings by title, company, or tech stack. Results update as you type with a 300 ms debounce.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon" style="color:#a5d6ff"><i class="bi bi-hdd-rack-fill"></i></div>
+          <h6 class="fw-bold">Local LLM First</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Runs entirely offline using Ollama. Supports Llama 3.1, Phi-3, DeepSeek-R1, and Qwen 3.5 — no API key required.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon" style="color:#f47174"><i class="bi bi-cloud-fill"></i></div>
+          <h6 class="fw-bold">Cloud LLM Option</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Swap in Gemini 2.5 Flash with a single env var. The same <code>prompt_model()</code> interface routes by model name.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon" style="color:#f0c14b"><i class="bi bi-box-seam-fill"></i></div>
+          <h6 class="fw-bold">Fully Containerised</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Three Docker services on a shared bridge network. One <code>docker compose up</code> command starts everything. No host network driver used.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feat-card h-100">
+          <div class="feat-icon" style="color:#56d364"><i class="bi bi-database-fill-gear"></i></div>
+          <h6 class="fw-bold">Medallion Data Layer</h6>
+          <p class="small" style="color:#8b949e;line-height:1.7">Bronze → Silver → Gold ETL pipeline. Raw scrape data is cleaned, normalised, and promoted layer by layer into a queryable SQLite database.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ USAGE ══════════════════════════════ -->
+<section id="usage">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">WALKTHROUGH</p>
+      <h2 class="section-title">How to Use It</h2>
+    </div>
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-6">
+        <h5 class="fw-bold mb-4"><i class="bi bi-chat-dots text-primary me-2"></i>Chat Interface</h5>
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex gap-3">
+            <div class="step-num">1</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">Open <code>http://localhost:8000</code> — you land on the <strong>Chat</strong> tab with a greeting message.</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">2</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">Click the <i class="bi bi-paperclip"></i> paperclip icon and upload your PDF resume. PDF.js extracts the text locally — nothing is uploaded to an external server.</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">3</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">Type your question and press <kbd>Enter</kbd>. Your message + extracted PDF text are sent as JSON to <code>POST /chat</code> on the backend.</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">4</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">The backend builds a career-focused prompt, calls Ollama (or Gemini), and streams the reply back to the chat bubble.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-line text-success me-2"></i>Jobs Dashboard</h5>
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex gap-3">
+            <div class="step-num">1</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">Click the <strong>Jobs Dashboard</strong> tab in the navbar. Charts load lazily on first open from <code>GET /api/stats</code>.</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">2</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">The <strong>pie chart</strong> shows the role category breakdown (AI Engineer, Data Engineer, Software Engineer, etc.).</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">3</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">The <strong>horizontal bar chart</strong> ranks Malaysian states by number of available jobs — Kuala Lumpur leads, followed by Selangor and Penang.</p>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="step-num">4</div>
+            <p class="small mb-0" style="color:#8b949e;padding-top:.35rem">Use the <strong>search bar</strong> to filter all 98 job listings by title, company name, or tech stack in real time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ TECH STACK ══════════════════════════════ -->
+<section id="stack">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="text-primary fw-semibold mb-1">TECHNOLOGIES</p>
+      <h2 class="section-title">Tech Stack</h2>
+    </div>
+    <div class="row g-3 justify-content-center" style="max-width:700px;margin:0 auto">
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-filetype-py text-warning"></i>Python 3.14</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-lightning-charge text-success"></i>FastAPI</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-hdd-rack text-info"></i>Uvicorn</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-box-seam text-primary"></i>Docker</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-bootstrap text-purple" style="color:#7952b3"></i>Bootstrap 5</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-bar-chart text-warning"></i>Chart.js</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-file-pdf text-danger"></i>PDF.js</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-database text-success"></i>SQLite</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-cpu text-warning"></i>Ollama</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-cloud text-info"></i>Gemini</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-train-front text-danger"></i>Railway</div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3">
+        <div class="tech-badge"><i class="bi bi-github"></i>GitHub</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ FOOTER ══════════════════════════════ -->
+<footer>
+  <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-cpu-fill text-primary"></i>
+      <span class="fw-semibold text-light">KYouth AI Pipeline</span>
+    </div>
+    <span>Built with FastAPI · Bootstrap · Ollama · Docker</span>
+    <a href="https://github.com/AsynchronousNotAvailable/kyouth-data-ai" class="text-secondary text-decoration-none">
+      <i class="bi bi-github me-1"></i>View on GitHub
+    </a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
