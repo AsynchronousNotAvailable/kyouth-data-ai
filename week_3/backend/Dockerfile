@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 ENV OLLAMA_HOST=http://host.docker.internal:11434
-ENV DEFAULT_MODEL=gemini-2.5-flash
+ENV DEFAULT_MODEL=llama3.1:latest
 ENV DB_PATH=/data/jobs.db
 
 RUN pip install uv
