@@ -22,6 +22,9 @@ services:
     env_file: docker.env
     ports:
       - "8001:8001"
+    environment:
+      # Override docker.env so the backend reaches Ollama via the shared Docker network
+      - OLLAMA_HOST=http://ollama:11434
     volumes:
       - ../week_2/data/jobs.db:/data/jobs.db:ro
     networks:
